@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Title>Softwarehelden.Transactions.Oletx</Title>
+    <Description>Library to enable distributed OleTx transactions for Microsoft SQL servers in .NET 6.0</Description>
+    <Copyright>Softwarehelden GmbH &amp; Co. KG</Copyright>
+    <Authors>Softwarehelden GmbH &amp; Co. KG</Authors>
+    <PackageProjectUrl>https://github.com/softwarehelden-com/Softwarehelden.Transactions.Oletx</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/softwarehelden-com/Softwarehelden.Transactions.Oletx</RepositoryUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>msdtc oletx distributed transactions mssql</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>Readme.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Readme.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>
