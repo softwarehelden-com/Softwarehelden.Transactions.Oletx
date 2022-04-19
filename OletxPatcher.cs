@@ -50,7 +50,7 @@ namespace Softwarehelden.Transactions.Oletx
                     BindingFlags.Static | BindingFlags.Public
                 );
 
-                var getNewExportCookieMethod = typeof(Patches).GetMethod(
+                var getExportCookieNewMethod = typeof(Patches).GetMethod(
                     nameof(Patches.GetExportCookie),
                     BindingFlags.Static | BindingFlags.Public
                 );
@@ -60,13 +60,13 @@ namespace Softwarehelden.Transactions.Oletx
                     new Type[] { typeof(IPromotableSinglePhaseNotification), typeof(Guid) }
                 );
 
-                var setNonMsdtcPromoterTypeMethod = typeof(Patches).GetMethod(
-                    nameof(Patches.SetNonMsdtcPromoterType),
+                var enlistPromotableSinglePhaseNewMethod = typeof(Patches).GetMethod(
+                    nameof(Patches.EnlistPromotableSinglePhase),
                     BindingFlags.Static | BindingFlags.Public
                 );
 
-                MethodPatcher.Patch(getExportCookieMethod, new HarmonyMethod(getNewExportCookieMethod));
-                MethodPatcher.Patch(enlistPromotableSinglePhaseMethod, new HarmonyMethod(setNonMsdtcPromoterTypeMethod));
+                MethodPatcher.Patch(getExportCookieMethod, new HarmonyMethod(getExportCookieNewMethod));
+                MethodPatcher.Patch(enlistPromotableSinglePhaseMethod, new HarmonyMethod(enlistPromotableSinglePhaseNewMethod));
             }
         }
 
@@ -75,6 +75,31 @@ namespace Softwarehelden.Transactions.Oletx
         /// </summary>
         private static class Patches
         {
+            /// <summary>
+            /// Performs a PSPE enlistment with a non-MSDTC promoter type.
+            /// </summary>
+            public static void EnlistPromotableSinglePhase(
+                ref Transaction __instance,
+                ref IPromotableSinglePhaseNotification promotableSinglePhaseNotification,
+                ref Guid promoterType
+            )
+            {
+                // Set a custom promoter type for all MSDTC promotable transactions. If the promoter
+                // type is not MSDTC then the transaction state machine in System.Transactions
+                // cannot assume that the propagation token is a MSDTC propagation token. Therefore
+                // the framework also does not attempt to create a distributed transaction and no
+                // PlatformNotSupportedException will be thrown when the transaction is being
+                // promoted. Elastic database transactions in Azure SQL work basically the same way.
+                if (promoterType == TransactionInterop.PromoterTypeDtc)
+                {
+                    promoterType = NonMsdtcPromoterType;
+
+                    // Wrap the promotable single phase notification of the .NET data adapter to
+                    // customize the MSDTC promotion
+                    promotableSinglePhaseNotification = new OletxDelegatedTransaction(__instance, promotableSinglePhaseNotification);
+                }
+            }
+
             /// <summary>
             /// Returns a transaction cookie that is used to propagate/import a distributed
             /// transaction on a SQL server that wants to participate in the transaction.
@@ -122,24 +147,6 @@ namespace Softwarehelden.Transactions.Oletx
                 {
                     // Call the original method since we cannot handle the promoter type of the transaction
                     return true;
-                }
-            }
-
-            /// <summary>
-            /// Sets a non-MSDTC promoter type for the method <see
-            /// cref="Transaction.EnlistPromotableSinglePhase(IPromotableSinglePhaseNotification, Guid)"/>.
-            /// </summary>
-            public static void SetNonMsdtcPromoterType(ref Guid promoterType)
-            {
-                // Set a custom promoter type for all MSDTC promotable transactions. If the promoter
-                // type is not MSDTC then the transaction state machine in System.Transactions
-                // cannot assume that the propagation token is a MSDTC propagation token. Therefore
-                // the framework also does not attempt to create a distributed transaction and no
-                // PlatformNotSupportedException will be thrown when the transaction is being
-                // promoted. Elastic database transactions in Azure SQL work basically the same way.
-                if (promoterType == TransactionInterop.PromoterTypeDtc)
-                {
-                    promoterType = NonMsdtcPromoterType;
                 }
             }
         }
