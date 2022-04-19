@@ -8,7 +8,7 @@ namespace Softwarehelden.Transactions.Oletx
 {
     /// <summary>
     /// The MSDTC patcher applies patches to the distributed transaction implementation in
-    /// System.Transactions to make promotable transactions work with SQL servers in .NET 6.0. The
+    /// System.Transactions to make promotable transactions work with SQL servers in .NET Core. The
     /// patch would in theory also work for other data providers that support promotable single
     /// phase enlistment (PSPE) using the method Transaction.EnlistPromotableSinglePhase() where the
     /// database itself or an external service acts as a MSDTC superior transaction manager and can
@@ -115,7 +115,7 @@ namespace Softwarehelden.Transactions.Oletx
                     // MSDTC). System.Transactions calls only the Promote method of the promotable
                     // single phase notification implemented by the ADO.NET provider and do not call
                     // the MSDTC API directly which would result in a PlatformNotSupportedException
-                    // on .NET 6.
+                    // on .NET Core.
                     byte[] propagationToken = transaction.GetPromotedToken();
 
                     if (propagationToken != null)
@@ -129,7 +129,7 @@ namespace Softwarehelden.Transactions.Oletx
 
                         // Note that Azure SQL supports sending the propagation token directly in
                         // the TDS propagate request to make elastic transactions work natively in
-                        // .NET 6 without querying the MSDTC API.
+                        // .NET Core without querying the MSDTC API.
 
                         // Pull the promoted transaction from the source MSDTC to the local MSDTC
                         // (pull propagation)

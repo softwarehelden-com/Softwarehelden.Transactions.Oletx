@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <Title>Softwarehelden.Transactions.Oletx</Title>
-    <Description>Library to enable distributed OleTx transactions for Microsoft SQL servers in .NET 6.0</Description>
+    <Description>Library to enable distributed transactions for Microsoft SQL servers in .NET Core Windows</Description>
     <Copyright>Softwarehelden GmbH &amp; Co. KG</Copyright>
     <Authors>Softwarehelden GmbH &amp; Co. KG</Authors>
     <PackageProjectUrl>https://github.com/softwarehelden-com/Softwarehelden.Transactions.Oletx</PackageProjectUrl>
@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" Condition="'$(TargetFramework)' == 'netcoreapp3.1' OR '$(TargetFramework)' == 'net5.0'" />
   </ItemGroup>
 
   <ItemGroup>
