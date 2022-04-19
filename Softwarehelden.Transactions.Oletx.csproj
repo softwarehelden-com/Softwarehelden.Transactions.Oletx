@@ -24,4 +24,11 @@
     <None Include="Readme.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
+  <Target Name="SignFileAfterBuild" AfterTargets="Build" Condition="'$(SigningCertificateThumbprint)' != ''">
+    <SignFile CertificateThumbprint="$(SigningCertificateThumbprint)"
+              SigningTarget="$(OutputPath)$(AssemblyName).dll"
+              TimestampUrl="$(SigningTimestampUrl)"
+              Condition="Exists('$(OutputPath)$(AssemblyName).dll')" />
+  </Target>
+
 </Project>
