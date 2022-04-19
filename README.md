@@ -1,10 +1,11 @@
-# Distributed Transactions for MSSQL servers in .NET 6.0
+# Distributed Transactions for MSSQL in .NET Core Windows
 
 [![NuGet](https://img.shields.io/nuget/v/Softwarehelden.Transactions.Oletx.svg)](https://www.nuget.org/packages/Softwarehelden.Transactions.Oletx)
 
-.NET 6.0 does not support distributed transactions promoted to MSDTC. .NET applications targeting
-.NET 6.0 can use this library to enable promotable transactions for Microsoft SQL servers and
-volatile resource managers. Below is a list of supported and unsupported .NET data providers.
+.NET Core does not support distributed transactions promoted to MSDTC. .NET applications targeting
+.NET Core 3.1, .NET 5.0 or .NET 6.0 can use this library to enable promotable transactions for
+Microsoft SQL servers and volatile resource managers on the Windows platform. Below is a list of
+supported and unsupported .NET data providers.
 
 ## How it works
 
@@ -17,7 +18,7 @@ When a transaction is being promoted with a custom promoter type, `System.Transa
 `Promote()` method of the promotable single phase notification
 (`IPromotableSinglePhaseNotification`) to delegate the transaction ownership to an external
 transaction manager. Because of the non-MSDTC promoter type, `System.Transactions` does not interact
-with the MSDTC API which would result in the `PlatformNotSupportedException` under .NET 6.0.
+with the MSDTC API which would result in the `PlatformNotSupportedException` under .NET Core.
 Microsoft introduced non-MSDTC promoter types in .NET Framework 4.6.1 to support distributed
 database transactions (called elastic transactions) in Azure SQL using a non-MSDTC coordinator.
 
@@ -31,7 +32,7 @@ the method `TransactionInterop.GetExportCookie()` to propagate the transaction b
 MSDTC services.
 
 This library replaces the default implementation of `TransactionInterop.GetExportCookie()` that
-would otherwise throw a `PlatformNotSupportedException` in .NET 6.0 due to MSDTC promotion. The
+would otherwise throw a `PlatformNotSupportedException` in .NET Core due to MSDTC promotion. The
 patched version of `GetExportCookie()` uses the same MSDTC COM API as the .NET Framework to export
 the MSDTC transaction cookie. This is done in three steps:
 
@@ -55,7 +56,7 @@ Related .NET issue: https://github.com/dotnet/runtime/issues/715
 
 ## How to use
 
-Call `OletxPatcher.Patch()` in the entry point of your .NET 6.0 application:
+Call `OletxPatcher.Patch()` in the entry point of your .NET Core application:
 
 ```cs
 public static class Program
@@ -63,7 +64,7 @@ public static class Program
     public static async Task Main(string[] args)
     {
         // Patch the OleTx implementation in System.Transactions to support distributed
-        // transactions for MSSQL servers under .NET 6.0
+        // transactions for MSSQL servers under .NET Core
         OletxPatcher.Patch();
 
         // ..
@@ -125,8 +126,8 @@ The following .NET data providers are supported:
 
 ## Unsupported .NET data providers
 
-- Data provider performs PSPE enlistment but throw an exception when the PSPE enlistment fails (e.g.
-  `Oracle.ManagedDataAccess.Core` and `MySql.Data`).
+- Data provider performs PSPE enlistment but throws an exception when the PSPE enlistment fails
+  (e.g. `Oracle.ManagedDataAccess.Core` and `MySql.Data`).
 - Data provider performs durable enlistment calling `Transaction.EnlistDurable()` or
   `Transaction.PromoteAndEnlistDurable()`. Durable enlistment requires coordination between
   `System.Transactions` and the local MSDTC which is not implemented in this project.

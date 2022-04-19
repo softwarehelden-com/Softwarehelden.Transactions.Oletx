@@ -205,7 +205,7 @@ namespace Softwarehelden.Transactions.Oletx
         }
 
         /// <summary>
-        /// .NET 6 applications cannot participate as durable resource manager in the distributed transaction.
+        /// .NET Core applications cannot participate as durable resource manager in the distributed transaction.
         /// </summary>
         private class MsdtcResourceManager
         {
