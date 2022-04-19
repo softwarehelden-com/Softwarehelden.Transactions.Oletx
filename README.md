@@ -1,4 +1,4 @@
-# Distributed Transactions for MSSQL servers in .NET Core Windows
+# Distributed Transactions for MSSQL in .NET Core Windows
 
 [![NuGet](https://img.shields.io/nuget/v/Softwarehelden.Transactions.Oletx.svg)](https://www.nuget.org/packages/Softwarehelden.Transactions.Oletx)
 
