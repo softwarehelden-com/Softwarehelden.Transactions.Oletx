@@ -1,11 +1,11 @@
-# Distributed Transactions for MSSQL in .NET Core Windows
+# Distributed Transactions for MSSQL and Oracle in .NET Core on Windows
 
 [![NuGet](https://img.shields.io/nuget/v/Softwarehelden.Transactions.Oletx.svg)](https://www.nuget.org/packages/Softwarehelden.Transactions.Oletx)
 
 .NET Core does not support distributed transactions promoted to MSDTC. .NET applications targeting
 .NET Core 3.1, .NET 5.0 or .NET 6.0 can use this library to enable promotable transactions for
-Microsoft SQL servers and volatile resource managers on the Windows platform. Below is a list of
-supported and unsupported .NET data providers.
+Microsoft SQL servers, Oracle database servers and volatile resource managers on the Windows
+platform. Below is a list of supported and unsupported .NET data providers.
 
 ## How it works
 
@@ -52,6 +52,12 @@ request for MSSQL). The transaction has now been successfully promoted to a dist
 Three MSDTC services with different roles will coordinate the outcome of the transaction on behalf
 of the application.
 
+This project also supports .NET data providers that propagate the native DTC transaction
+(`System.Transaction.IDtcTransaction` or `System.EnterpriseServices.ITransaction`) to an external
+service using `TransactionInterop.GetDtcTransaction()` (e.g `Oracle.DataAccess`). For this external
+enlistment, the service acts as a proxy between the database and MSDTC (e.g. `OraMTS`). The service
+performs the durable enlistment using methods other than `Transaction.EnlistDurable()`.
+
 Related .NET issue: https://github.com/dotnet/runtime/issues/715
 
 ## How to use
@@ -64,7 +70,7 @@ public static class Program
     public static async Task Main(string[] args)
     {
         // Patch the OleTx implementation in System.Transactions to support distributed
-        // transactions for MSSQL servers under .NET Core
+        // transactions for MSSQL servers and Oracle servers under .NET Core
         OletxPatcher.Patch();
 
         // ..
@@ -72,8 +78,8 @@ public static class Program
 }
 ```
 
-Distributed transactions will now work out of the box with Microsoft SQL servers in your
-application. You can use the familiar `System.Transactions` API:
+Distributed transactions will now work out of the box with Microsoft SQL servers and Oracle servers
+in your application. You can use the familiar `System.Transactions` API:
 
 ```cs
 using (var transactionScope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
@@ -90,11 +96,11 @@ using (var transactionScope = new TransactionScope(TransactionScopeOption.Requir
 		}
 	}
     
-	using (var sqlConnection = new SqlConnection(connectionString2))
+	using (var oracleConnection = new OracleConnection(connectionString2))
 	{
-		await sqlConnection.OpenAsync(cancellationToken);
+		await oracleConnection.OpenAsync(cancellationToken);
 		
-		using (var command = sqlConnection.CreateCommand())
+		using (var command = oracleConnection.CreateCommand())
 		{
 			command.CommandText = "insert into T2 values('b')";
 			
@@ -108,29 +114,36 @@ using (var transactionScope = new TransactionScope(TransactionScopeOption.Requir
 
 ## Supported .NET data providers
 
-Data providers can participate in the distributed transaction in two ways:
+Data providers can participate in the distributed transaction in three ways:
 
 - Data provider performs PSPE enlistment calling `Transaction.EnlistPromotableSinglePhase()`. The
   distributed transaction coordination is delegated to an external MSDTC service and the transaction
   is propagated to the participants using MSDTC transaction cookies (push propagation).
+- Data provider delegates the durable enlistment to an external service that acts as proxy for the
+  database to MSDTC. The native DTC transaction `IDtcTransaction` is propagated to the service using
+  the `TransactionInterop.GetDtcTransaction()` method.
 - Data provider performs volatile enlistment calling `Transaction.EnlistVolatile()`. In the event of
   a crash between the prepare and commit phase, no data recovery takes place.
 
 The following .NET data providers are supported:
 
-| .NET Data Provider         | Database             | Enlistment | Recovery                                           |
-| -------------------------- | -------------------- | ---------- | -------------------------------------------------- |
-| `Microsoft.Data.SqlClient` | Microsoft SQL Server | PSPE       | yes                                                |
-| `System.Data.SqlClient`    | Microsoft SQL Server | PSPE       | yes                                                |
-| `Npgsql`                   | PostgreSQL           | Volatile   | [no](https://github.com/npgsql/npgsql/issues/1378) |
+| .NET Data Provider         | Database             | Enlistment      | Recovery                                           | Remarks                                      |
+| -------------------------- | -------------------- | --------------- | -------------------------------------------------- | -------------------------------------------- |
+| `Microsoft.Data.SqlClient` | Microsoft SQL Server | PSPE            | yes                                                |                                              |
+| `System.Data.SqlClient`    | Microsoft SQL Server | PSPE            | yes                                                |                                              |
+| `Oracle.DataAccess`        | Oracle Database      | PSPE (external) | yes (Oracle MTS Recovery Service)                  | `UseOraMTSManaged=false` and `CPVersion=1.0` |
+| `Npgsql`                   | PostgreSQL           | Volatile        | [no](https://github.com/npgsql/npgsql/issues/1378) |                                              |
 
 ## Unsupported .NET data providers
 
-- Data provider performs PSPE enlistment but throws an exception when the PSPE enlistment fails
-  (e.g. `Oracle.ManagedDataAccess.Core` and `MySql.Data`).
+- Data provider performs PSPE enlistment but throws an exception when the PSPE enlistment fails. For
+  example the data providers `Oracle.ManagedDataAccess.Core` and `MySql.Data` throw exceptions when
+  the transaction must be promoted to MSDTC.
 - Data provider performs durable enlistment calling `Transaction.EnlistDurable()` or
   `Transaction.PromoteAndEnlistDurable()`. Durable enlistment requires coordination between
-  `System.Transactions` and the local MSDTC which is not implemented in this project.
+  `System.Transactions` and the local MSDTC which is not implemented in this project. For example
+  the managed Oracle MTS implementation (`UseOraMTSManaged=true`) is not supported for the unmanaged
+  ODP.NET driver `Oracle.DataAccess` because managed OraMTS requires `Transaction.EnlistDurable()`.
 
 ## Requirements
 

@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Title>Softwarehelden.System.EnterpriseServices</Title>
+    <Description>Compatibility library for .NET data providers that require the COM transaction interface from System.EnterpriseServices</Description>
+    <Copyright>Softwarehelden GmbH &amp; Co. KG</Copyright>
+    <Authors>Softwarehelden GmbH &amp; Co. KG</Authors>
+    <AssemblyName>System.EnterpriseServices</AssemblyName>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <Target Name="SignFileAfterBuild" AfterTargets="Build" Condition="'$(SigningCertificateThumbprint)' != ''">
+    <SignFile CertificateThumbprint="$(SigningCertificateThumbprint)"
+              SigningTarget="$(OutputPath)$(AssemblyName).dll"
+              TimestampUrl="$(SigningTimestampUrl)"
+              Condition="Exists('$(OutputPath)$(AssemblyName).dll')" />
+  </Target>
+
+</Project>
