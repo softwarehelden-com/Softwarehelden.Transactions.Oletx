@@ -65,8 +65,19 @@ namespace Softwarehelden.Transactions.Oletx
                     BindingFlags.Static | BindingFlags.Public
                 );
 
+                var getDtcTransactionMethod = typeof(TransactionInterop).GetMethod(
+                    nameof(TransactionInterop.GetDtcTransaction),
+                    BindingFlags.Static | BindingFlags.Public
+                );
+
+                var getDtcTransactionNewMethod = typeof(Patches).GetMethod(
+                   nameof(Patches.GetTransactionNative),
+                   BindingFlags.Static | BindingFlags.Public
+               );
+
                 MethodPatcher.Patch(getExportCookieMethod, new HarmonyMethod(getExportCookieNewMethod));
                 MethodPatcher.Patch(enlistPromotableSinglePhaseMethod, new HarmonyMethod(enlistPromotableSinglePhaseNewMethod));
+                MethodPatcher.Patch(getDtcTransactionMethod, new HarmonyMethod(getDtcTransactionNewMethod));
             }
         }
 
@@ -146,6 +157,34 @@ namespace Softwarehelden.Transactions.Oletx
                 else
                 {
                     // Call the original method since we cannot handle the promoter type of the transaction
+                    return true;
+                }
+            }
+
+            /// <summary>
+            /// Returns the native DTC transaction for the given transaction instance.
+            /// </summary>
+            public static bool GetTransactionNative(Transaction transaction, ref IDtcTransaction __result)
+            {
+                if (transaction.PromoterType == NonMsdtcPromoterType)
+                {
+                    byte[] propagationToken = transaction.GetPromotedToken();
+
+                    if (propagationToken != null)
+                    {
+                        var transactionShim = TransactionManager.ReceiveTransaction(propagationToken);
+
+                        // The native DTC transaction is compatible with ITransaction used by MSDTC
+                        // (unmanaged) and with ITransaction used by System.EnterpriseServices (managed)
+                        transactionShim.GetITransactionNative(out __result);
+                    }
+
+                    // Do not call the original method
+                    return false;
+                }
+                else
+                {
+                    // Call the original method
                     return true;
                 }
             }
