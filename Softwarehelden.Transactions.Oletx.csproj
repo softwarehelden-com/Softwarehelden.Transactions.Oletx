@@ -3,16 +3,17 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <Title>Softwarehelden.Transactions.Oletx</Title>
-    <Description>Library to enable distributed transactions for Microsoft SQL servers in .NET Core Windows</Description>
+    <Description>Library to enable distributed transactions for Microsoft SQL servers and Oracle database servers in .NET Core on Windows</Description>
     <Copyright>Softwarehelden GmbH &amp; Co. KG</Copyright>
     <Authors>Softwarehelden GmbH &amp; Co. KG</Authors>
     <PackageProjectUrl>https://github.com/softwarehelden-com/Softwarehelden.Transactions.Oletx</PackageProjectUrl>
     <RepositoryUrl>https://github.com/softwarehelden-com/Softwarehelden.Transactions.Oletx</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageTags>msdtc oletx distributed transactions mssql</PackageTags>
+    <PackageTags>msdtc oletx distributed transactions mssql oracle</PackageTags>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +25,22 @@
     <None Include="Readme.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="System.EnterpriseServices\Softwarehelden.System.EnterpriseServices.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="System.EnterpriseServices\**" />
+    <EmbeddedResource Remove="System.EnterpriseServices\**" />
+    <None Remove="System.EnterpriseServices\**" />
+  </ItemGroup>
+
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="BuildOnlySettings;ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')->WithMetadataValue('PrivateAssets', 'All'))" />
+    </ItemGroup>
+  </Target>
+  
   <Target Name="SignFileAfterBuild" AfterTargets="Build" Condition="'$(SigningCertificateThumbprint)' != ''">
     <SignFile CertificateThumbprint="$(SigningCertificateThumbprint)"
               SigningTarget="$(OutputPath)$(AssemblyName).dll"
