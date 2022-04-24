@@ -17,27 +17,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.2.0" />
+    <ProjectReference Include="..\Softwarehelden.Build.Tasks\Softwarehelden.Build.Tasks.csproj" PrivateAssets="all" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.1" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" Condition="'$(TargetFramework)' == 'netcoreapp3.1' OR '$(TargetFramework)' == 'net5.0'" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Readme.md" Pack="true" PackagePath="/" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="System.EnterpriseServices\Softwarehelden.System.EnterpriseServices.csproj" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="System.EnterpriseServices\**" />
-    <EmbeddedResource Remove="System.EnterpriseServices\**" />
-    <None Remove="System.EnterpriseServices\**" />
+    <None Include="..\..\Readme.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="BuildOnlySettings;ResolveReferences">
     <ItemGroup>
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')->WithMetadataValue('PrivateAssets', 'All'))" />
+      <BuildOutputInPackage Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.mscorlib.dll" />
+      <BuildOutputInPackage Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.System.Security.Principal.Windows.dll" />
+      <BuildOutputInPackage Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.System.EnterpriseServices.dll" />
+      <BuildOutputInPackage Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.System.Data.Entity.dll" />
     </ItemGroup>
   </Target>
   
