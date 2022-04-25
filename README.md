@@ -58,6 +58,13 @@ service using `TransactionInterop.GetDtcTransaction()` (e.g `Oracle.DataAccess`)
 enlistment, the service acts as a proxy between the database and MSDTC (e.g. `OraMTS`). The service
 performs the durable enlistment using methods other than `Transaction.EnlistDurable()`.
 
+Data providers targeting .NET Framework are not 100% compatible with .NET Core. For example the
+unmanaged ODP.NET driver `Oracle.DataAccess` targets .NET Framework 4. To support .NET Framework
+data providers in .NET Core, applications can use the compatibility assembly load context
+`OletxCompatibilityLoadContext` from this project to load the data provider in compatibility mode.
+This library provides types and methods from the `System` namespace that need to be compiled at
+runtime but are unknown to the .NET Core runtime (e.g. `System.EnterpriseServices.ITransaction`).
+
 Related .NET issue: https://github.com/dotnet/runtime/issues/715
 
 ## How to use
@@ -84,31 +91,36 @@ in your application. You can use the familiar `System.Transactions` API:
 ```cs
 using (var transactionScope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
 {
-	using (var sqlConnection = new SqlConnection(connectionString))
-	{
-		await sqlConnection.OpenAsync(cancellationToken);
-		
-		using (var command = sqlConnection.CreateCommand())
-		{
-			command.CommandText = "insert into T1 values('a')";
-			
-			await command.ExecuteNonQueryAsync(cancellationToken);
-		}
-	}
+    using (var sqlConnection = new SqlConnection(connectionString))
+    {
+        await sqlConnection.OpenAsync(cancellationToken);
+        
+        using (var command = sqlConnection.CreateCommand())
+        {
+            command.CommandText = "insert into T1 values('a')";
+            
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+    }
+
+    // Load the Oracle client factory in compatibility mode
+    var oracleClientFactory = OletxCompatibilityLoadContext.CreateDbProviderFactory(typeof(OracleClientFactory));
+  
+    using (var oracleConnection = oracleClientFactory.CreateConnection())
+    {
+        oracleConnection.ConnectionString = connectionString2;
+
+        await oracleConnection.OpenAsync(cancellationToken);
+        
+        using (var command = oracleConnection.CreateCommand())
+        {
+            command.CommandText = "insert into T2 values('b')";
+            
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+    }
     
-	using (var oracleConnection = new OracleConnection(connectionString2))
-	{
-		await oracleConnection.OpenAsync(cancellationToken);
-		
-		using (var command = oracleConnection.CreateCommand())
-		{
-			command.CommandText = "insert into T2 values('b')";
-			
-			await command.ExecuteNonQueryAsync(cancellationToken);
-		}
-	}
-	
-	transactionScope.Complete();
+    transactionScope.Complete();
 }
 ```
 
@@ -155,5 +167,9 @@ The following .NET data providers are supported:
 
 ## Credits
 
-This project uses the [Harmony](https://github.com/pardeike/Harmony) library for patching the
-`System.Transactions` methods.
+This project uses the following libraries:
+
+- [Harmony](https://github.com/pardeike/Harmony) for patching the `System.Transactions` methods at
+  runtime
+- [dnlib](https://github.com/0xd4d/dnlib) for patching .NET types at compile time to load data
+  providers targeting .NET Framework in compatibility mode (e.g. `Oracle.DataAccess`)
