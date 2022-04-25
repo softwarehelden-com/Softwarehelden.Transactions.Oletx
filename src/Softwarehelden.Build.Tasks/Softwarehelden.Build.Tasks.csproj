@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <Title>Softwarehelden.Build.Tasks</Title>
+    <Description>Build tasks for Softwarehelden.Transactions.Oletx</Description>
+    <Copyright>Softwarehelden GmbH &amp; Co. KG</Copyright>
+    <Authors>Softwarehelden GmbH &amp; Co. KG</Authors>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Softwarehelden.System.Data.Entity\Softwarehelden.System.Data.Entity.csproj" />
+    <ProjectReference Include="..\Softwarehelden.System.EnterpriseServices\Softwarehelden.System.EnterpriseServices.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dnlib" Version="3.5.0" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" Condition="'$(TargetFramework)' == 'netcoreapp3.1' OR '$(TargetFramework)' == 'net5.0'" />
+  </ItemGroup>
+
+  <Target Name="RunAfterBuild" AfterTargets="Build">
+    <Exec Command="$(OutputPath)$(AssemblyName).exe" Condition="Exists('$(OutputPath)$(AssemblyName).exe')" />
+  </Target>
+
+  <Target Name="SignFileAfterBuild" AfterTargets="RunAfterBuild" Condition="'$(SigningCertificateThumbprint)' != ''">
+    <SignFile CertificateThumbprint="$(SigningCertificateThumbprint)"
+              SigningTarget="$(OutputPath)Softwarehelden.mscorlib.dll"
+              TimestampUrl="$(SigningTimestampUrl)"
+              Condition="Exists('$(OutputPath)Softwarehelden.mscorlib.dll')" />
+    <SignFile CertificateThumbprint="$(SigningCertificateThumbprint)"
+              SigningTarget="$(OutputPath)Softwarehelden.System.Security.Principal.Windows.dll"
+              TimestampUrl="$(SigningTimestampUrl)"
+              Condition="Exists('$(OutputPath)Softwarehelden.System.Security.Principal.Windows.dll')" />
+  </Target>
+  
+</Project>
