@@ -13,7 +13,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);SetTfmSpecificPackageFiles</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,15 +29,26 @@
     <None Include="..\..\Readme.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
-  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="BuildOnlySettings;ResolveReferences">
+  <Target Name="SetTfmSpecificPackageFiles">
     <ItemGroup>
-      <BuildOutputInPackage Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.mscorlib.dll" />
-      <BuildOutputInPackage Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.System.Security.Principal.Windows.dll" />
-      <BuildOutputInPackage Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.System.EnterpriseServices.dll" />
-      <BuildOutputInPackage Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.System.Data.Entity.dll" />
+      <TfmSpecificPackageFile Include="bin\$(Configuration)\$(TargetFramework)\Softwarehelden.Transactions.Oletx.dll">
+        <PackagePath>runtimes/win-x64/lib/$(TargetFramework)</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.mscorlib.dll">
+        <PackagePath>runtimes/win-x64/lib/$(TargetFramework)</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.System.Security.Principal.Windows.dll">
+        <PackagePath>runtimes/win-x64/lib/$(TargetFramework)</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.System.EnterpriseServices.dll">
+        <PackagePath>runtimes/win-x64/lib/$(TargetFramework)</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="..\Softwarehelden.Build.Tasks\bin\$(Configuration)\$(TargetFramework)\Softwarehelden.System.Data.Entity.dll">
+        <PackagePath>runtimes/win-x64/lib/$(TargetFramework)</PackagePath>
+      </TfmSpecificPackageFile>
     </ItemGroup>
   </Target>
-  
+
   <Target Name="SignFileAfterBuild" AfterTargets="Build" Condition="'$(SigningCertificateThumbprint)' != ''">
     <SignFile CertificateThumbprint="$(SigningCertificateThumbprint)"
               SigningTarget="$(OutputPath)$(AssemblyName).dll"

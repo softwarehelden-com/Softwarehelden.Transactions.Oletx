@@ -64,6 +64,7 @@ data providers in .NET Core, applications can use the compatibility assembly loa
 `OletxCompatibilityLoadContext` from this project to load the data provider in compatibility mode.
 This library provides types and methods from the `System` namespace that need to be compiled at
 runtime but are unknown to the .NET Core runtime (e.g. `System.EnterpriseServices.ITransaction`).
+The `OletxCompatibilityLoadContext` load context is only supported on `win-x64`.
 
 Related .NET issue: https://github.com/dotnet/runtime/issues/715
 
@@ -148,8 +149,8 @@ The following .NET data providers are supported:
 
 | .NET Data Provider         | Database             | Enlistment      | Recovery                                           | Remarks                                      |
 | -------------------------- | -------------------- | --------------- | -------------------------------------------------- | -------------------------------------------- |
-| `Microsoft.Data.SqlClient` | Microsoft SQL Server | PSPE            | yes                                                |                                              |
-| `System.Data.SqlClient`    | Microsoft SQL Server | PSPE            | yes                                                |                                              |
+| `Microsoft.Data.SqlClient` | Microsoft SQL Server | PSPE            | yes                                                | Use `MsSqlPatcher` if `Pooling=True`         |
+| `System.Data.SqlClient`    | Microsoft SQL Server | PSPE            | yes                                                | Use `MsSqlPatcher` if `Pooling=True`         |
 | `Oracle.DataAccess`        | Oracle Database      | PSPE (external) | yes (Oracle MTS Recovery Service)                  | `UseOraMTSManaged=false` and `CPVersion=1.0` |
 | `Npgsql`                   | PostgreSQL           | Volatile        | [no](https://github.com/npgsql/npgsql/issues/1378) |                                              |
 
