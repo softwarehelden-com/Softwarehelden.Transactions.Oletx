@@ -80,6 +80,9 @@ public static class Program
         // transactions for MSSQL servers and Oracle servers under .NET Core
         OletxPatcher.Patch();
 
+        // Patch the Microsoft.Data.SqlClient or System.Data.SqlClient library (see below)
+        MsSqlPatcher.Patch(typeof(SqlConnection).Assembly);
+
         // ..
     }
 }
@@ -123,6 +126,10 @@ using (var transactionScope = new TransactionScope(TransactionScopeOption.Requir
     transactionScope.Complete();
 }
 ```
+
+You should also call `MsSqlPatcher.Patch(typeof(SqlConnection).Assembly)` to patch
+`Microsoft.Data.SqlClient` or `System.Data.SqlClient` library until Microsoft fixes the issue
+[#1623](https://github.com/dotnet/SqlClient/issues/1623) to prevent connection pool corruption.
 
 ## Supported .NET data providers
 

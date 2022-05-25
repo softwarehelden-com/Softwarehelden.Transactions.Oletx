@@ -15,6 +15,7 @@ namespace Sample
             var cancellationToken = CancellationToken.None;
 
             OletxPatcher.Patch();
+            MsSqlPatcher.Patch(typeof(SqlConnection).Assembly);
 
             string connectionString = args[0];
             string connectionString2 = args[1];
