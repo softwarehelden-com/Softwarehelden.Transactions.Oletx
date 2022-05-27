@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Transactions;
 
@@ -89,6 +90,7 @@ namespace Softwarehelden.Transactions.Oletx
             /// <summary>
             /// Performs a PSPE enlistment with a non-MSDTC promoter type.
             /// </summary>
+            [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.AggressiveOptimization)]
             public static void EnlistPromotableSinglePhase(
                 ref Transaction __instance,
                 ref IPromotableSinglePhaseNotification promotableSinglePhaseNotification,
@@ -115,6 +117,7 @@ namespace Softwarehelden.Transactions.Oletx
             /// Returns a transaction cookie that is used to propagate/import a distributed
             /// transaction on a SQL server that wants to participate in the transaction.
             /// </summary>
+            [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.AggressiveOptimization)]
             public static bool GetExportCookie(Transaction transaction, byte[] whereabouts, ref byte[] __result)
             {
                 // Should the transaction be promoted using our custom promoter type?
@@ -164,6 +167,7 @@ namespace Softwarehelden.Transactions.Oletx
             /// <summary>
             /// Returns the native DTC transaction for the given transaction instance.
             /// </summary>
+            [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.AggressiveOptimization)]
             public static bool GetTransactionNative(Transaction transaction, ref IDtcTransaction __result)
             {
                 if (transaction.PromoterType == NonMsdtcPromoterType)
