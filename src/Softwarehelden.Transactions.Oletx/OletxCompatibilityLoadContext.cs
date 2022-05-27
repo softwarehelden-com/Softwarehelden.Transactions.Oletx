@@ -13,7 +13,7 @@ namespace Softwarehelden.Transactions.Oletx
     {
         private const string AssemblyPrefix = "Softwarehelden";
 
-        private readonly string assemblyDirectory;
+        private readonly AssemblyDependencyResolver assemblyDependencyResolver;
         private readonly Type dbProviderFactoryType;
         private readonly Type entryType;
 
@@ -22,11 +22,28 @@ namespace Softwarehelden.Transactions.Oletx
         /// provider factory type.
         /// </summary>
         public OletxCompatibilityLoadContext(Type entryType, Type dbProviderFactoryType)
+            : this(Assembly.GetEntryAssembly(), entryType, dbProviderFactoryType)
         {
-            this.entryType = entryType;
-            this.dbProviderFactoryType = dbProviderFactoryType;
+        }
 
-            this.assemblyDirectory = Path.GetDirectoryName(this.entryType.Assembly.Location);
+        /// <summary>
+        /// Creates a new compatibility assembly load context for the given entry assembly, entry
+        /// type and database provider factory type.
+        /// </summary>
+        /// <param name="entryAssembly">The entry assembly of the current process (e.g. Assembly.GetEntryAssembly())</param>
+        /// <param name="entryType">The entry type for the load context that uses the dbProviderFactoryType</param>
+        /// <param name="dbProviderFactoryType">The type of the db provider factory (e.g. MyNetFxClientFactory)</param>
+        public OletxCompatibilityLoadContext(Assembly entryAssembly, Type entryType, Type dbProviderFactoryType)
+        {
+            if (entryAssembly == null)
+            {
+                throw new ArgumentNullException(nameof(entryAssembly));
+            }
+
+            this.assemblyDependencyResolver = new AssemblyDependencyResolver(entryAssembly.Location);
+
+            this.entryType = entryType ?? throw new ArgumentNullException(nameof(entryType));
+            this.dbProviderFactoryType = dbProviderFactoryType ?? throw new ArgumentNullException(nameof(dbProviderFactoryType));
         }
 
         /// <summary>
@@ -52,7 +69,7 @@ namespace Softwarehelden.Transactions.Oletx
         /// <inheritdoc/>
         protected override Assembly Load(AssemblyName assemblyName)
         {
-            string dependencyAssemblyPath = Path.Combine(this.assemblyDirectory, $"{AssemblyPrefix}.{assemblyName.Name}.dll");
+            string dependencyAssemblyPath = this.assemblyDependencyResolver.ResolveAssemblyToPath(new AssemblyName($"{AssemblyPrefix}.{assemblyName.Name}"));
 
             if (File.Exists(dependencyAssemblyPath))
             {
