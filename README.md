@@ -161,7 +161,7 @@ The following .NET data providers are supported:
   the managed Oracle MTS implementation (`UseOraMTSManaged=true`) is not supported for the unmanaged
   ODP.NET driver `Oracle.DataAccess` because managed OraMTS requires `Transaction.EnlistDurable()`.
 
-## NET 8
+## .NET 8
 
 Microsoft added distributed transaction support under Windows starting with .NET 7. Distributed
 transaction support must be explicitly enabled:
