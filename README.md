@@ -1,11 +1,11 @@
-# Distributed Transactions for MSSQL and Oracle in .NET Core on Windows
+# Distributed Transactions for MSSQL and Oracle in .NET 6 on Windows
 
 [![NuGet](https://img.shields.io/nuget/v/Softwarehelden.Transactions.Oletx.svg)](https://www.nuget.org/packages/Softwarehelden.Transactions.Oletx)
 
-.NET Core does not support distributed transactions promoted to MSDTC. .NET applications targeting
-.NET Core 3.1, .NET 5.0 or .NET 6.0 can use this library to enable promotable transactions for
-Microsoft SQL servers, Oracle database servers and volatile resource managers on the Windows
-platform. Below is a list of supported and unsupported .NET data providers.
+.NET 6 does not support distributed transactions promoted to MSDTC. .NET applications targeting
+.NET 6 can use this library to enable promotable transactions for Microsoft SQL servers, Oracle
+database servers and volatile resource managers on the Windows platform. Below is a list of supported
+and unsupported .NET data providers.
 
 ## How it works
 
@@ -18,7 +18,7 @@ When a transaction is being promoted with a custom promoter type, `System.Transa
 `Promote()` method of the promotable single phase notification
 (`IPromotableSinglePhaseNotification`) to delegate the transaction ownership to an external
 transaction manager. Because of the non-MSDTC promoter type, `System.Transactions` does not interact
-with the MSDTC API which would result in the `PlatformNotSupportedException` under .NET Core.
+with the MSDTC API which would result in the `PlatformNotSupportedException` under .NET 6.
 Microsoft introduced non-MSDTC promoter types in .NET Framework 4.6.1 to support distributed
 database transactions (called elastic transactions) in Azure SQL using a non-MSDTC coordinator.
 
@@ -32,7 +32,7 @@ the method `TransactionInterop.GetExportCookie()` to propagate the transaction b
 MSDTC services.
 
 This library replaces the default implementation of `TransactionInterop.GetExportCookie()` that
-would otherwise throw a `PlatformNotSupportedException` in .NET Core due to MSDTC promotion. The
+would otherwise throw a `PlatformNotSupportedException` in .NET 6 due to MSDTC promotion. The
 patched version of `GetExportCookie()` uses the same MSDTC COM API as the .NET Framework to export
 the MSDTC transaction cookie. This is done in three steps:
 
@@ -58,19 +58,19 @@ service using `TransactionInterop.GetDtcTransaction()` (e.g `Oracle.DataAccess`)
 enlistment, the service acts as a proxy between the database and MSDTC (e.g. `OraMTS`). The service
 performs the durable enlistment using methods other than `Transaction.EnlistDurable()`.
 
-Data providers targeting .NET Framework are not 100% compatible with .NET Core. For example the
+Data providers targeting .NET Framework are not 100% compatible with .NET 6. For example the
 unmanaged ODP.NET driver `Oracle.DataAccess` targets .NET Framework 4. To support .NET Framework
-data providers in .NET Core, applications can use the compatibility assembly load context
+data providers in .NET 6, applications can use the compatibility assembly load context
 `OletxCompatibilityLoadContext` from this project to load the data provider in compatibility mode.
 This library provides types and methods from the `System` namespace that need to be compiled at
-runtime but are unknown to the .NET Core runtime (e.g. `System.EnterpriseServices.ITransaction`).
+runtime but are unknown to the .NET 6 runtime (e.g. `System.EnterpriseServices.ITransaction`).
 The `OletxCompatibilityLoadContext` load context is only supported on `win-x64`.
 
 Related .NET issue: https://github.com/dotnet/runtime/issues/715
 
 ## How to use
 
-Call `OletxPatcher.Patch()` in the entry point of your .NET Core application:
+Call `OletxPatcher.Patch()` in the entry point of your .NET 6 application:
 
 ```cs
 public static class Program
@@ -78,7 +78,7 @@ public static class Program
     public static async Task Main(string[] args)
     {
         // Patch the OleTx implementation in System.Transactions to support distributed
-        // transactions for MSSQL servers and Oracle servers under .NET Core
+        // transactions for MSSQL servers and Oracle servers under .NET 6
         OletxPatcher.Patch();
 
         // Patch the Microsoft.Data.SqlClient or System.Data.SqlClient library (see below)
@@ -128,10 +128,6 @@ using (var transactionScope = new TransactionScope(TransactionScopeOption.Requir
 }
 ```
 
-You should also call `MsSqlPatcher.Patch(typeof(SqlConnection).Assembly)` to patch
-`Microsoft.Data.SqlClient` or `System.Data.SqlClient` library until Microsoft fixes the issue
-[#1623](https://github.com/dotnet/SqlClient/issues/1623) to prevent connection pool corruption.
-
 ## Supported .NET data providers
 
 Data providers can participate in the distributed transaction in three ways:
@@ -164,6 +160,22 @@ The following .NET data providers are supported:
   `System.Transactions` and the local MSDTC which is not implemented in this project. For example
   the managed Oracle MTS implementation (`UseOraMTSManaged=true`) is not supported for the unmanaged
   ODP.NET driver `Oracle.DataAccess` because managed OraMTS requires `Transaction.EnlistDurable()`.
+
+## NET 8
+
+Microsoft added distributed transaction support under Windows starting with .NET 7. Distributed
+transaction support must be explicitly enabled:
+
+```cs
+if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+{
+    // Enable distributed transactions under Windows
+    TransactionManager.ImplicitDistributedTransactions = true;
+}
+```
+
+In .NET 8 the `OletxPatcher` is no longer necessary. If distributed transactions with Oracle database
+servers are required, the `OletxCompatibilityLoadContext` can still be used in .NET 8.
 
 ## Requirements
 

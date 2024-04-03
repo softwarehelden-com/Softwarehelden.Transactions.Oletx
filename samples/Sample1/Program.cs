@@ -14,8 +14,14 @@ namespace Sample
         {
             var cancellationToken = CancellationToken.None;
 
+#if NET6_0
             OletxPatcher.Patch();
             MsSqlPatcher.Patch(typeof(SqlConnection).Assembly);
+#endif
+
+#if NET8_0
+            TransactionManager.ImplicitDistributedTransactions = true;
+#endif
 
             string connectionString = args[0];
             string connectionString2 = args[1];

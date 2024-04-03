@@ -4,8 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Title>Softwarehelden.System.Data.Entity</Title>
     <Description>Compatibility library for .NET data providers that require types from System.Data.Entity</Description>
-    <Copyright>Softwarehelden GmbH &amp; Co. KG</Copyright>
-    <Authors>Softwarehelden GmbH &amp; Co. KG</Authors>
+    <Copyright>Softwarehelden GmbH</Copyright>
+    <Authors>Softwarehelden GmbH</Authors>
     <AssemblyName>System.Data.Entity</AssemblyName>
     <AssemblyVersion>4.0.0.0</AssemblyVersion>
     <IsPackable>false</IsPackable>
