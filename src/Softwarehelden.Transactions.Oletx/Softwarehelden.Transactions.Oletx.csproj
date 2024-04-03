@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <Title>Softwarehelden.Transactions.Oletx</Title>
-    <Description>Library to enable distributed transactions for Microsoft SQL servers and Oracle database servers in .NET Core on Windows</Description>
-    <Copyright>Softwarehelden GmbH &amp; Co. KG</Copyright>
-    <Authors>Softwarehelden GmbH &amp; Co. KG</Authors>
+    <Description>Library to enable distributed transactions for Microsoft SQL servers and Oracle database servers in .NET 6 on Windows</Description>
+    <Copyright>Softwarehelden GmbH</Copyright>
+    <Authors>Softwarehelden GmbH</Authors>
     <PackageProjectUrl>https://github.com/softwarehelden-com/Softwarehelden.Transactions.Oletx</PackageProjectUrl>
     <RepositoryUrl>https://github.com/softwarehelden-com/Softwarehelden.Transactions.Oletx</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -17,16 +17,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="MsSqlPatcher.cs" />
+    <Compile Remove="OletxPatcher.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="MsSqlPatcher.cs" Condition="'$(TargetFramework)' == 'net6.0'" />
+    <Compile Include="OletxPatcher.cs" Condition="'$(TargetFramework)' == 'net6.0'" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Softwarehelden.Build.Tasks\Softwarehelden.Build.Tasks.csproj" PrivateAssets="all" />
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.2.1" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" Condition="'$(TargetFramework)' == 'netcoreapp3.1' OR '$(TargetFramework)' == 'net5.0'" />
+    <PackageReference Include="Lib.Harmony" Version="2.2.1" Condition="'$(TargetFramework)' == 'net6.0'" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\Readme.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="/" />
+    <None Include="..\..\THIRD-PARTY-NOTICES" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <Target Name="SetTfmSpecificPackageFiles">

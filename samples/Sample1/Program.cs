@@ -2,6 +2,7 @@
 using Oracle.DataAccess.Client;
 using Softwarehelden.Transactions.Oletx;
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -14,8 +15,16 @@ namespace Sample
         {
             var cancellationToken = CancellationToken.None;
 
+#if NET6_0
             OletxPatcher.Patch();
-            MsSqlPatcher.Patch(typeof(SqlConnection).Assembly);
+#endif
+
+#if NET8_0
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                TransactionManager.ImplicitDistributedTransactions = true;
+            }
+#endif
 
             string connectionString = args[0];
             string connectionString2 = args[1];
@@ -48,13 +57,13 @@ namespace Sample
 
                         await command2.ExecuteNonQueryAsync(cancellationToken);
                     }
+                }
 
-                    using (var sqlConnection3 = oracleClientFactory.CreateConnection())
-                    {
-                        sqlConnection3.ConnectionString = connectionString2;
+                using (var sqlConnection3 = oracleClientFactory.CreateConnection())
+                {
+                    sqlConnection3.ConnectionString = connectionString2;
 
-                        await sqlConnection3.OpenAsync(cancellationToken);
-                    }
+                    await sqlConnection3.OpenAsync(cancellationToken);
                 }
 
                 Console.WriteLine("Distributed transaction identifier: " + Transaction.Current.TransactionInformation.DistributedIdentifier);
